@@ -37,4 +37,4 @@ userSchema.methods.generateJWT =  function () {
 
 // exporting the modal 
  const User = mongoose.model('User', userSchema); 
- export default User
+ export default User;

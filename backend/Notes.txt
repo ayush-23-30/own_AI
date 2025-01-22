@@ -5,3 +5,4 @@
 
 #-> if you want * as allFunction from a page , then you can't do export default because it return only one function.... 
 
+-------- Day 2 ------- 
