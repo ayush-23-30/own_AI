@@ -15,7 +15,7 @@ import User from "../modals/user.modal.js";
     password : hashedPassword
   })
 
-  return user; 
+  return user;
 }
 
 export default createUser

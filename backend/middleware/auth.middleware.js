@@ -1,21 +1,36 @@
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
+import redisClient from "../services/redis.services.js";
 
-export const authUser = async (req,res,next) =>{
+export const authUser = async (req, res, next) => {
   try {
-    const token = req.cookies.token || req.headers.authorization.split(' ')[ 1 ]; 
-    if(!token){
-      console.log(" there is an error in Auth profile login middleWare ");
-    res.status(401).send({
-      error : 'please Authenticate'
-    })}
-    const decoded = jwt.verify(token, process.env.JWT_TOKEN); 
+    // Extract token from cookies or authorization header
+    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      console.log("No token provided in Auth middleware.");
+      return res.status(401).send({
+        error: "Please authenticate",
+      });
+    }
 
-    req.user = decoded; 
+    // Check if the token is blacklisted
+    const isBlackListed = await redisClient.get(token);
+    if (isBlackListed) {
+      console.log("Token is blacklisted.");
+      res.cookie("token", ""); // Clear token in cookies
+      return res.status(401).send({
+        error: "Token has been blacklisted. Please authenticate again.",
+      });
+    }
+
+    // Verify token and decode user info
+    const decoded = jwt.verify(token, process.env.JWT_TOKEN);
+    req.user = decoded; // Attach decoded user info to the request object
+
     next(); 
   } catch (error) {
-    console.log(" there is an error in Auth profile login middleWare ");
+    console.error("Error in Auth middleware:", error.message);
     res.status(401).send({
-      error : 'please Authenticate'
-    })
+      error: "Please authenticate",
+    });
   }
-}
+};

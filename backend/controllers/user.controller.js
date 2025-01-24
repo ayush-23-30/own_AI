@@ -82,3 +82,21 @@ export const profileController = async (req, res) => {
   });
 };
 
+export const logoutController = async (req,res)=>{
+try {
+  const token = req.cookies.token || req.headers.authorization.split(' ')[ 1 ]; 
+
+  redisClient.set(token, 'logout', 'EX', 60 * 60 * 24); 
+
+
+  console.log("Logout Success full");
+  res.status(200).json({
+    message : 'User Logged out!'
+  })
+  
+
+} catch (error) {
+  console.log("Error in logout ",error);
+  res.status(400).send(err.message);  
+}
+}
