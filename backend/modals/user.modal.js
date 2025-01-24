@@ -32,7 +32,9 @@ userSchema.methods.isValidPassword = async function (password){
 
 // creating a jwt token 
 userSchema.methods.generateJWT =  function () {
-  return  jwt.sign({ email : this.email , },process.env.JWT_TOKEN)
+  return  jwt.sign({ email : this.email , },process.env.JWT_TOKEN , {expiresIn : '72h'}
+    
+  )
 }
 
 // exporting the modal 
