@@ -3,12 +3,16 @@ import morgan from 'morgan';
 import connectWithDB from '../backend/db/db.js'
 import router from './routes/user.routes.js';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import projectRouter from '../backend/routes/projects.router.js'
 
 const app = express(); 
 
 app.use(morgan('dev')); 
 
 connectWithDB(); 
+ 
+app.use(cors()); // change when delpoying to production
 
 app.use(express.json()); 
 app.use(express.urlencoded({
@@ -18,6 +22,7 @@ app.use(express.urlencoded({
 app.use(cookieParser())
 
 app.use('/users', router)
+app.use('/projects', projectRouter)
 
 app.get('/', (req,res) => {
   res.send('Hello I am Your Personal AI ')
