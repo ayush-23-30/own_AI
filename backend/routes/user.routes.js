@@ -11,6 +11,8 @@ router.post(
   body("password")
     .isLength({ min: 6 })
     .withMessage("Password must be at a strong password"), 
+    body("fullName").isLength({ min: 3 }).withMessage("Full Name must be at least 3 characters long"),
+    body("phoneNumber").isLength({ min: 10 }).withMessage("Phone number must be at least 10 characters long"),
     userController.createUserController
 );
 
@@ -18,7 +20,7 @@ router.post('/login',
   body("email").isEmail().withMessage("email must be a vaild account"),
   body("password")
     .isLength({ min: 6 })
-    .withMessage("Password must be at a strong password"), 
+    .withMessage("Password does not matched"), 
     userController.loginController
 )
 

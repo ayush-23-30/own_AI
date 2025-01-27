@@ -19,6 +19,8 @@ export const createUserController = async (req, res) => {
     res.status(201).send(user);
 
     const token = await user.generateJWT();
+  
+    delete user._doc.password;
 
     console.log("user Created");
     return res.status(201).json({ user, token });
@@ -63,6 +65,9 @@ export const loginController = async (req, res) => {
     }
 
     const token = user.generateJWT(); // Call the instance method to generate a JWT
+
+    delete user._doc.password; // Don't send password back to the client 
+    
     console.log("User login successful");
     res.status(200).json({
       user,
