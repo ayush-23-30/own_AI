@@ -1,33 +1,30 @@
 import mongoose from 'mongoose';
 
-const projectSchema = new mongoose.Schema(
-  {
+
+const projectSchema = new mongoose.Schema({
     name: {
-      type: String,
-      required: [true, 'Project name is required'],
-      trim: true,
-      unique: true, // Ensures MongoDB enforces unique values for the name field
+        type: String,
+        lowercase: true,
+        required: true,
+        trim: true,
+        unique: [ true, 'Project name must be unique' ],
     },
+
     users: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-      },
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'user'
+        }
     ],
-  },
-  { timestamps: true }
-);
+    fileTree: {
+        type: Object,
+        default: {}
+    },
 
-// Sync indexes to ensure the database reflects the schema definition
-// projectSchema.post('save', async function (doc, next) {
-//   try {
-//     await mongoose.model('Project').syncIndexes();
-//     next();
-//   } catch (err) {
-//     next(err);
-//   }
-// });
+})
 
-const Project = mongoose.model('Project', projectSchema);
+
+const Project = mongoose.model('project', projectSchema)
+
 
 export default Project;
