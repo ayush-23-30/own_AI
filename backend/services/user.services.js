@@ -1,7 +1,7 @@
 import User from "../modals/user.modal.js";
 
 
- const createUser = async ({
+ export const createUser = async ({
   email , password , fullName , phoneNumber
  }) => {
 
@@ -25,4 +25,3 @@ import User from "../modals/user.modal.js";
   return user;
 }
 
-export default createUser
