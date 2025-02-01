@@ -1,6 +1,6 @@
 import {Router} from 'express'
 import {body} from 'express-validator'; 
-import { addUserToProject, createProject, getAllProject } from '../controllers/project.controller.js';
+import { addUserToProject, createProject, getAllProject, getProjectByIdController } from '../controllers/project.controller.js';
 import { authUser } from '../middleware/auth.middleware.js';
 
 const router = Router();
@@ -19,5 +19,8 @@ router.put('/add-user',
   }).withMessage('Each user should be a string'), 
   addUserToProject
 )
+
+router.get('/project/:projectId', authUser, getProjectByIdController);
+
 
  export default router;
