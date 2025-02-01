@@ -6,19 +6,20 @@ import { toast } from "react-toastify";
 import { UserContext } from "../context/user.context";
 import { CiBookmarkPlus } from "react-icons/ci";
 import { IoMdClose } from "react-icons/io";
-// import axiosInstance from "../config/axios";
+import { FaUser } from "react-icons/fa";
 
 function Homes() {
   const navigate = useNavigate();
   const [openCreateProjectModal, setOpenCreateProjectModal] =
     React.useState(false);
+  const [projects, setProjects] = React.useState([]);
+  console.log("Projects", projects);
+
   const [projectName, setProjectName] = React.useState("");
 
   const { user } = useContext(UserContext);
 
   console.log("user", user);
-
-
 
   function logoutHandler() {
     axiosInstance
@@ -82,35 +83,52 @@ function Homes() {
 
   const inputRef = useRef(null);
 
+  
+
   useEffect(() => {
     if (openCreateProjectModal) {
       inputRef.current.focus();
     }
   }, [openCreateProjectModal]);
 
-const handleCreateProject = () => {
-  if (!projectName) {
-    toast.error("Please Enter Project Name");
-    return;
-  }
 
-  axiosInstance
-    .post("/projects/create", { name: projectName })
-    .then((res) => {
-      console.log(res.data);
-      toast.success(`Your ${projectName} Project Created`);
-      closeProjectModal();
-    })
-    .catch((err) => {
-      if (err.response && err.response.data && err.response.data.errors) {
-        toast.error(err.response.data.errors[0].msg);
-      } else {
-        toast.error("Something went wrong");
-      }
-      console.error(err.response);
-    });
-};
 
+  useEffect(() => {
+    axiosInstance
+      .get("/projects/all-projects")
+      .then((res) => {
+        setProjects(res.data.projects)
+        // console.log("Projects", projects);
+        console.log(res.data);
+      })
+      .catch((err) => {
+        console.error(err.response);
+      });
+  }, []);
+
+  const handleCreateProject = () => {
+    if (!projectName) {
+      toast.error("Please Enter Project Name");
+      return;
+    }
+
+    axiosInstance
+      .post("/projects/create", { name: projectName })
+      .then((res) => {
+        console.log(res.data);
+        toast.success(`Your ${projectName} Project Created`);
+        closeProjectModal();
+        window.location.reload();
+      })
+      .catch((err) => {
+        if (err.response && err.response.data && err.response.data.errors) {
+          toast.error(err.response.data.errors[0].msg);
+        } else {
+          toast.error("Something went wrong");
+        }
+        console.error(err.response);
+      });
+  };
 
   const openProjectModal = () => {
     // Handle create project logic here
@@ -124,7 +142,7 @@ const handleCreateProject = () => {
 
   function createProjectUi() {
     return (
-      <div className="fixed z-100 inset-0 flex items-center justify-center h bg-black bg-opacity-50">
+      <div className="fixed z-100 inset-0 flex items-center justify-center bg-opacity-50 backdrop-filter backdrop-blur-sm">
         <div className="bg-gray-500  p-6 h-56 rounded-lg shadow-lg max-w-md w-full">
           <div className="flex align-center justify-between mb-4">
             <h2 className="text-2xl mb-4">Create New Project</h2>
@@ -139,7 +157,7 @@ const handleCreateProject = () => {
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
             placeholder="Project Name"
-            className="w-full border border-2 outline-none border-white p-2 mb-4  rounded"
+            className="w-full  border-2 outline-none border-white p-2 mb-4  rounded"
             ref={inputRef}
           />
 
@@ -162,8 +180,41 @@ const handleCreateProject = () => {
     );
   }
 
+  function renderAllProjects() {
+    if (projects.length === 0) {
+      return <h1 className="text-center text-2xl">No Projects Found</h1>;
+    }
+    return (
+      <>
+        <div className="flex flex-wrap gap-4 mt-4">
+          {projects.map((project) => {
+            return (
+              <div
+                key={project._id}
+                className="w-56 cursor-pointer p-3 bg-gray-800 rounded-lg shadow-lg flex justify-between flex-col items-center transition-transform duration-200 hover:shadow-xl hover:scale-105"
+                onClick = {() => navigate(`/project/${project._id }`, {state: project})}
+                >
+                <p className="text-lg">{project.name}</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <FaUser className="h-4"/>
+                  <p className="text-sm">
+                  Collaborators : {project.users.length}
+
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </>
+    );
+    
+    
+  }
+  
+
   return (
-    <div className="flex flex-col gap-5  min-h-screen bg-gray-900 text-white">
+    <div className="flex flex-col gap-5 min-h-screen bg-gray-900 text-white">
       <main className="p-4">
         {/* ----- Projects Section ---- */}
         <div className="projects">
@@ -173,6 +224,8 @@ const handleCreateProject = () => {
           >
             New Project <CiBookmarkPlus className="text-white  text-2xl" />
           </button>
+          {renderAllProjects()}
+
         </div>
       </main>
 
