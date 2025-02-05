@@ -1,12 +1,19 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { MdGroups2 } from "react-icons/md";
-import { IoAddCircle, IoAddSharp, IoSend } from "react-icons/io5";
+import { IoSend } from "react-icons/io5";
 import { FaTimes, FaUserCircle } from "react-icons/fa";
 import { IoIosPersonAdd, IoMdClose } from "react-icons/io";
 import { toast } from "react-toastify";
 import { useEffect } from "react";
 import axiosInstance from "../config/axios";
+import {
+  initializeSocket,
+  receiveMessage,
+  SendMessage,
+} from "../config/socket.io";
+import { UserContext } from "../context/user.context";
+
 
 const messages = [
   { id: 1, text: "Hello!", sender: "Alice" },
@@ -17,24 +24,27 @@ const messages = [
     text: "I'm good, thanks! How about you? helllo saklj I'm good, thanks! How about you? helllo saklj I'm good, thanks! How about you?  ",
     sender: "Bob",
   },
-  { id: 1, text: "Hello!", sender: "Alice" },
-  { id: 2, text: "Hi there!", sender: "Bob" },
-  { id: 3, text: "How are you?", sender: "Alice" },
+  { id: 12, text: "Hello!", sender: "Alice" },
+  { id: 22, text: "Hi there!", sender: "Bob" },
+  { id: 33, text: "How are you?", sender: "Alice" },
   {
-    id: 4,
+    id: 412,
     text: "I'm good, thanks! How about you? helllo saklj I'm good, thanks! How about you? helllo saklj I'm good, thanks! How about you?  ",
     sender: "Bob",
   },
 ];
 
 function Project() {
-  const [textMessage, setTextMessage] = useState();
+  const [message, setMessage] = useState();
   const [isOpen, setIsOpen] = useState(false);
   const [openCreateProjectModal, setOpenCreateProjectModal] =
     React.useState(false);
   const [selectedUserId, setSelectedUserId] = useState([]);
   const [users, setUser] = useState([]);
   const [thisProjectData, setThisProjectData] = useState([]);
+
+  const { user } = useContext(UserContext);
+  console.log("cureentn", user);
 
   const togglePanel = () => {
     setIsOpen(!isOpen);
@@ -49,37 +59,67 @@ function Project() {
     setOpenCreateProjectModal(false);
   };
 
-  useEffect(() => {
+  function allUserList(){
     axiosInstance
-      .get("users/all")
-      .then((res) => {
-        // console.log("res all user", res.data.users);
-        if (Array.isArray(res.data.users)) {
-          setUser(res.data.users);
-        } else {
-          console.error("Expected 'users' to be an array");
-        }
-      })
-      .catch((err) => {
-        console.error("Error fetching users", err);
-      });
-  }, []);
-  useEffect(() => {
-    axiosInstance
-      .get(`/projects/project/${projectId}`,
-    )
-      .then((res) => {
-        
-          console.log("resdata", res.data.project.users);
-          setThisProjectData(res.data?.project?.users);
-        
-      })
-      .catch((err) => {
-        console.error("Error fetching users", err);
-      });
-  }, []);
+    .get("users/all")
+    .then((res) => {
+      // console.log("res all user", res.data.users);
+      if (Array.isArray(res.data.users)) {
+        setUser(res.data.users);
+      } else {
+        console.error("Expected 'users' to be an array");
+      }
+    })
+    .catch((err) => {
+      console.error("Error fetching users", err);
+    });
+  }
 
-console.log("thiss", thisProjectData);
+
+  function currectProject(){
+    axiosInstance
+    .get(`/projects/project/${projectId}`)
+    .then((res) => {
+      console.log("resdata", res.data.project.users);
+      setThisProjectData(res.data?.project?.users);
+    })
+    .catch((err) => {
+      console.error("Error fetching users", err);
+    });
+  }
+
+  const messageBox = React.createRef();
+
+  useEffect(() => {
+  allUserList();
+  currectProject();
+  }, []);
+  
+
+  function appendIncomingMessages(msgObj){
+    const messageBox = document.querySelector('.message-box')
+    const message = document.createElement('div')
+    message.innerHTML = `
+    <small class = 'opacity-65 text-xs ' > ${msgObj.sender.email}</small>
+    <p class = 'text-sm '>
+    ${msgObj.message}
+    </p>
+    `
+    messageBox.appendChild(message)
+  }
+  const [msgData,setMsgData ] = useState([])
+
+  useEffect(() => {
+    initializeSocket(projectId);
+
+    receiveMessage("project-message", (data) => {
+      console.log("Received project message:", data);
+      appendIncomingMessages(data);
+      setMsgData(data)
+    });
+  })
+  
+  console.log("thiss", thisProjectData);
 
   console.log("user res", users);
 
@@ -119,18 +159,18 @@ console.log("thiss", thisProjectData);
   function chatSendingArea() {
     return (
       <>
-        <div className="message-box  border-t-[1.5px] absolute w-full border-y-neutral-800 bottom-0 shadow-lg">
+        <div className="message-box  border-t-[1.5px] absolute w-full border-y-neutral-800 bottom-0 shadow-lg" ref={messageBox}>
           <div className="input-feild flex relative">
             <input
               type="text"
-              value={textMessage}
+              value={message}
               placeholder="Enter message"
-              onChange={(e) => setTextMessage(e.target.value)}
+              onChange={(e) => setMessage(e.target.value)}
               className="bg-blue-500 outline-none
               pl-2 text-black placeholder:text-black placeholder:text-md w-full h-10"
             />
             <div className="absolute bottom-[11px] pr-2 right-0 flex justify-center  ">
-              <button>
+              <button onClick={sendMessageHandler}>
                 <IoSend className="text-black cursor-pointer" />
               </button>
             </div>
@@ -144,9 +184,9 @@ console.log("thiss", thisProjectData);
     return (
       <div className="flex flex-col  max-h-[90vh] p-4  bg-blue-300 w-80 overflow-y-auto">
         <div className="flex-1">
-          {messages.map((message) => (
+          {msgData.map((message) => (
             <div
-              key={message.id}
+              key={message._id}
               className={`mb-5 ${
                 message.sender === "Alice" ? "text-right" : "text-left"
               }`}
@@ -174,6 +214,14 @@ console.log("thiss", thisProjectData);
     );
   }
 
+  function sendMessageHandler() {
+    SendMessage("project-message", {
+      message,
+      sender: user?._id,
+    });
+
+    setMessage("");
+  }
 
   const handleUserSelect = (userId) => {
     setSelectedUserId([...selectedUserId, userId]);
@@ -182,18 +230,18 @@ console.log("thiss", thisProjectData);
   const handleAddCollaborator = () => {
     if (selectedUserId.length > 0) {
       console.log("Selected User IDs:", selectedUserId);
-     
+
       // setSelectedUserId([]);
       axiosInstance
-      .put("/projects/add-user", {
-        projectId: projectId,
-        users: Array.from(selectedUserId),
-      })
-      .then((res) => {
-        console.log("res", res.data);
-        toast.success(`Collaborators added successfully!`);
-        closeProjectModal();
-        // closeProjectModal();
+        .put("/projects/add-user", {
+          projectId: projectId,
+          users: Array.from(selectedUserId),
+        })
+        .then((res) => {
+          console.log("res", res.data);
+          toast.success(`Collaborators added successfully!`);
+          closeProjectModal();
+          // closeProjectModal();
         })
         .catch((err) => {
           console.log("err", err);
@@ -281,15 +329,15 @@ console.log("thiss", thisProjectData);
         <div className="p-1 text-black">
           <h2 className="text-lg font-bold mb-2">Users</h2>
           <ul className="space-y-2">
-            {thisProjectData?.map((users)=>(
-            <div key={users?._id} className="flex gap-2 items-center p-2 bg-white rounded-lg shadow-md w-full hover:bg-gray-300">
-              <FaUserCircle />
-              <li className="text-lg font-medium"> 
-                {users?.email}
-              </li>
-            </div>
-            )) }
-         
+            {thisProjectData?.map((users) => (
+              <div
+                key={users?._id}
+                className="flex gap-2 items-center p-2 bg-white rounded-lg shadow-md w-full hover:bg-gray-300"
+              >
+                <FaUserCircle />
+                <li className="text-lg font-medium">{users?.email}</li>
+              </div>
+            ))}
           </ul>
         </div>
       </div>
