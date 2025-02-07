@@ -15,6 +15,7 @@ import {
 import { UserContext } from "../context/user.context";
 
 
+
 const messages = [
   { id: 1, text: "Hello!", sender: "Alice" },
   { id: 2, text: "Hi there!", sender: "Bob" },
@@ -99,12 +100,24 @@ function Project() {
   function appendIncomingMessages(msgObj){
     const messageBox = document.querySelector('.message-box')
     const message = document.createElement('div')
-    message.innerHTML = `
-    <small class = 'opacity-65 text-xs ' > ${msgObj.sender.email}</small>
-    <p class = 'text-sm '>
-    ${msgObj.message}
-    </p>
-    `
+    if(message.sender._id === 'ai'){
+      const markdown =  ( ''
+                // <Markdown>
+        //   {message.message}
+        // </Markdown>
+        // <small class = 'opacity-65 text-xs ' > ${msgObj.sender.email}</small>
+        // <p class = 'text-sm '>
+        // ${msgObj.message}
+        // </p>
+      )
+    }else{
+      message.innerHTML = `
+      <small class = 'opacity-65 text-xs ' > ${msgObj.sender.email}</small>
+      <p class = 'text-sm '>
+      ${msgObj.message}
+      </p>
+      `
+    }
     messageBox.appendChild(message)
   }
   const [msgData,setMsgData ] = useState([])
@@ -114,7 +127,7 @@ function Project() {
 
     receiveMessage("project-message", (data) => {
       console.log("Received project message:", data);
-      appendIncomingMessages(data);
+      // appendIncomingMessages(data);
       setMsgData(data)
     });
   })
@@ -184,9 +197,9 @@ function Project() {
     return (
       <div className="flex flex-col  max-h-[90vh] p-4  bg-blue-300 w-80 overflow-y-auto">
         <div className="flex-1">
-          {msgData.map((message) => (
+          {messages.map((message) => (
             <div
-              key={message._id}
+              key={message.id}
               className={`mb-5 ${
                 message.sender === "Alice" ? "text-right" : "text-left"
               }`}

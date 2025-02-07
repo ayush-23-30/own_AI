@@ -7,6 +7,7 @@ import { error } from "console";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import porjectModal from "../backend/modals/project.model.js";
+import { generateResulta } from "./services/ai.sevices.js";
 
 const server = http.createServer(app);
 
@@ -66,12 +67,41 @@ socket.roomId = socket.project._id.toString();
 
   socket.join(socket.roomId);
 
-  socket.on("project-message", (data) => {
+  socket.on("project-message",async (data) => {
     console.log(data);
+
+    const message = data.message; 
+    
+    console.log("messaga" , message);
+     
+    const isAIPresentedInMessage = message.includes('@ai'); 
+
+    if(isAIPresentedInMessage){
+      console.log("Ai is present in the message!");
+
+      const propmt = message.replace('@ai' , ''); 
+      const result = await generateResulta(propmt);
+      socket.broadcast.to(socket.roomId).emit("project-message", data);
+
+      io.to(socket.roomId).emit('project-message', {
+        
+        message : result,
+        sender : {
+          _id : 'ai', 
+        email : 'AI'
+        }
+      })
+      
+      // socket.emit('project-message' ,{
+      //   sender : data.sender,
+      //   message : 'AI is Presend in the message'
+      // })
+      return;
+    }
+    
   
     // Broadcast the event to the room identified by the project ID
-    socket.broadcast.to(socket.roomId).emit("project-message", data);
-    // socket.broadcast.to(socket.roomId).emit("project", data);
+
   });
   
 
