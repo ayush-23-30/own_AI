@@ -1,60 +1,60 @@
-import React, { useState , useContext } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../custom/Button";
-import { FaEyeSlash } from "react-icons/fa";
 import { IoEyeSharp } from "react-icons/io5";
+import { FaEyeSlash } from "react-icons/fa";
 import axiosInstance from "../config/axios";
 import { toast } from "react-toastify";
 
-import { UserContext } from "../context/user.context";
-
-function Login() {
+function Register() {
   const [eyes, setEyes] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState(""); // Full Name state
+  const [phoneNumber, setPhoneNumber] = useState(""); // Phone Number state
 
   const navigate = useNavigate();
 
-  const { setUser } = useContext(UserContext);
-
-  function checkfromValidation(){
-    if(email === ""){
+  function checkFormValidation() {
+    if (fullName === "") {
+      toast.error("Full Name is required");
+      return false;
+    }
+    if (email === "") {
       toast.error("Email is required");
       return false;
     }
-    if(password === ""){
+    if (password === "") {
       toast.error("Password is required");
       return false;
     }
     return true;
   }
 
-  function sumbitHandler(e) {
-    if (!checkfromValidation()) {
+const { setUser } = useContext(UserContext);
+
+  function submitHandler(e) {
+    if (!checkFormValidation()) {
       return;
     }
     e.preventDefault();
     axiosInstance
-      .post('/users/login', { email, password })
+      .post("/users/register", { fullName, email, password, phoneNumber })
       .then((res) => {
-        setUser(res.data.user); // Setting data into context
-        localStorage.setItem('token', res.data.token);
-        navigate('/');
-        toast.success('User Logged in Successfully');
+        setUser(res.data.user); 
+        localStorage.setItem("token", res.data.token);
+
+        navigate("/home");
+        toast.success("User Registered Successfully");
         console.log(res.data);
       })
       .catch((err) => {
-        if (err.response && err.response.data && err.response.data.errors) {
-          toast.error(err.response.data.errors[0]?.msg || 'Error occurred');
-        } else if (err.message) {
-          toast.error(err.message); // For general network errors
-        } else {
-          toast.error('Something went wrong');
+        if (err.response && err.response.data) {
+          toast.error(err.response.data.errors[0].msg);
         }
-        console.error(err.response?.data);
+        console.error(err.response.data);
       });
   }
-  
 
   const toggle = () => {
     setEyes(!eyes);
@@ -63,9 +63,26 @@ function Login() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
       <div className="w-full m-2 max-w-md p-8 space-y-6 bg-gray-800 rounded-lg shadow-lg">
-        <h2 className="text-3xl font-bold text-center">Login</h2>
-        <form className="space-y-4" onSubmit={sumbitHandler}>
+        <h2 className="text-3xl font-bold text-center">Sign Up</h2>
+
+        <form className="space-y-4" onSubmit={submitHandler}>
+          {/* Full Name Input */}
+          <div>
+            <label htmlFor="fullName" className="block mb-2 text-sm font-medium">
+              Full Name
+            </label>
+            <input
+              type="text"
+              id="fullName"
+              className="w-full px-4 py-2 text-gray-900 bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Enter your full name"
+              required
+            />
+          </div>
+
           {/* Email Input */}
+
           <div>
             <label htmlFor="email" className="block mb-2 text-sm font-medium">
               Email
@@ -79,7 +96,9 @@ function Login() {
               required
             />
           </div>
+
           {/* Password Input */}
+          
           <div>
             <label
               htmlFor="password"
@@ -105,21 +124,40 @@ function Login() {
               </div>
             </div>
           </div>
+
+          {/* Phone Number Input (Optional) */}
+          <div>
+            <label
+              htmlFor="phoneNumber"
+              className="block mb-2 text-sm font-medium"
+            >
+              Phone Number*
+            </label>
+            <input
+              type="text"
+              id="phoneNumber"
+              className="w-full px-4 py-2 text-gray-900 bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="Enter your phone number (optional)"
+            />
+          </div>
+
           {/* Submit Button */}
           <Button
             type="submit"
             // loading={loading}
             className="w-full"
-            onClick={sumbitHandler}
+            onClick={submitHandler}
           >
-            Log In
+            Sign Up
           </Button>
         </form>
-        {/* Navigation to Sign-Up */}
+
+        {/* Navigation to Login */}
         <p className="text-center text-sm">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-blue-500 hover:underline">
-            Sign up
+          Already have an account?
+          <Link to="/login" className="pl-1 text-blue-500 hover:underline">
+            Login
           </Link>
         </p>
       </div>
@@ -127,4 +165,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Register;

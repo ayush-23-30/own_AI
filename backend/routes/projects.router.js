@@ -1,6 +1,6 @@
 import {Router} from 'express'
 import {body} from 'express-validator'; 
-import { addUserToProject, createProject, getAllProject, getProjectByIdController } from '../controllers/project.controller.js';
+import { addUserToProject, createProject, getAllProject, getProjectByIdController, updateFileTree } from '../controllers/project.controller.js';
 import { authUser } from '../middleware/auth.middleware.js';
 
 const router = Router();
@@ -10,7 +10,7 @@ router.post('/create',
   body('name').isString().withMessage('Name is required'), createProject
  )
 
- router.get('/all-projects', authUser,getAllProject )
+ router.get('/all', authUser,getAllProject )
 router.put('/add-user', 
   authUser, 
   body('projectId').isString().withMessage('Project ID is required'),
@@ -20,7 +20,15 @@ router.put('/add-user',
   addUserToProject
 )
 
-router.get('/project/:projectId', authUser, getProjectByIdController);
+router.get('/get-project/:projectId', authUser, getProjectByIdController);
+
+router.put('/update-file-tree',
+  authUser,
+  body('projectId').isString().withMessage('Project ID is required'),
+  body('fileTree').isObject().withMessage('File tree is required'),
+  updateFileTree
+)
+
 
 
  export default router;

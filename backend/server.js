@@ -7,7 +7,7 @@ import { error } from "console";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import porjectModal from "../backend/modals/project.model.js";
-import { generateResulta } from "./services/ai.sevices.js";
+import { generateResult } from "./services/ai.sevices.js";
 
 const server = http.createServer(app);
 
@@ -80,7 +80,7 @@ socket.roomId = socket.project._id.toString();
       console.log("Ai is present in the message!");
 
       const propmt = message.replace('@ai' , ''); 
-      const result = await generateResulta(propmt);
+      const result = await generateResult(propmt);
       socket.broadcast.to(socket.roomId).emit("project-message", data);
 
       io.to(socket.roomId).emit('project-message', {

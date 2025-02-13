@@ -1,19 +1,36 @@
-import React, { useContext, useState } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
+import { UserContext } from "../context/user.context";
 import { useLocation, useParams } from "react-router-dom";
+import {
+  initializeSocket,
+  receiveMessage,
+  sendMessage,
+} from "../config/socket.io";
+import Markdown from "markdown-to-jsx";
+// import hljs from "highlight.js";
+import { getWebContainer } from "../config/webcontainer";
+import axiosInstance from "../config/axios";
+
 import { MdGroups2 } from "react-icons/md";
 import { IoSend } from "react-icons/io5";
 import { FaTimes, FaUserCircle } from "react-icons/fa";
 import { IoIosPersonAdd, IoMdClose } from "react-icons/io";
-import { toast } from "react-toastify";
-import { useEffect } from "react";
-import axiosInstance from "../config/axios";
-import {
-  initializeSocket,
-  receiveMessage,
-  SendMessage,
-} from "../config/socket.io";
-import { UserContext } from "../context/user.context";
+import hljs from 'highlight.js';
 
+function SyntaxHighlightedCode(props) {
+  const ref = useRef(null);
+
+  React.useEffect(() => {
+    if (ref.current && props.className?.includes("lang-") && window.hljs) {
+      window.hljs.highlightElement(ref.current);
+
+      // hljs won't reprocess the element unless this attribute is removed
+      ref.current.removeAttribute("data-highlighted");
+    }
+  }, [props.className, props.children]);
+
+  return <code {...props} ref={ref} />;
+}
 
 
 const messages = [
@@ -36,15 +53,40 @@ const messages = [
 ];
 
 function Project() {
-  const [message, setMessage] = useState();
+
+   const location = useLocation();
+  
+    const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedUserId, setSelectedUserId] = useState(new Set()); // Initialized as Set
+    const [project, setProject] = useState(location.state.project);
+    console.log("oeds ",project);
+    
+    const [message, setMessage] = useState("");
+    const { user } = useContext(UserContext);
+    const messageBox = React.createRef();
+  
+    const [users, setUsers] = useState([]);
+    const [messages, setMessages] = useState([]); // New state variable for messages
+    const [fileTree, setFileTree] = useState({});
+  
+    const [currentFile, setCurrentFile] = useState(null);
+    const [openFiles, setOpenFiles] = useState([]);
+  
+    const [webContainer, setWebContainer] = useState(null);
+    const [iframeUrl, setIframeUrl] = useState(null);
+  
+    const [runProcess, setRunProcess] = useState(null);
+
+  // const [message, setMessage] = useState();
   const [isOpen, setIsOpen] = useState(false);
   const [openCreateProjectModal, setOpenCreateProjectModal] =
     React.useState(false);
-  const [selectedUserId, setSelectedUserId] = useState([]);
-  const [users, setUser] = useState([]);
+  // const [selectedUserId, setSelectedUserId] = useState([]);
+  // const [users, setUser] = useState([]);
   const [thisProjectData, setThisProjectData] = useState([]);
 
-  const { user } = useContext(UserContext);
+  // const {user} = useContext(UserContext);
   console.log("cureentn", user);
 
   const togglePanel = () => {
@@ -89,13 +131,16 @@ function Project() {
     });
   }
 
-  const messageBox = React.createRef();
+  // const messageBox = React.createRef();
 
   useEffect(() => {
   allUserList();
   currectProject();
   }, []);
   
+  function scrollToBottom() {
+    messageBox.current.scrollTop = messageBox.current.scrollHeight;
+  }
 
   function appendIncomingMessages(msgObj){
     const messageBox = document.querySelector('.message-box')
@@ -228,7 +273,7 @@ function Project() {
   }
 
   function sendMessageHandler() {
-    SendMessage("project-message", {
+    sendMessage("project-message", {
       message,
       sender: user?._id,
     });
@@ -342,15 +387,18 @@ function Project() {
         <div className="p-1 text-black">
           <h2 className="text-lg font-bold mb-2">Users</h2>
           <ul className="space-y-2">
-            {thisProjectData?.map((users) => (
-              <div
-                key={users?._id}
-                className="flex gap-2 items-center p-2 bg-white rounded-lg shadow-md w-full hover:bg-gray-300"
-              >
-                <FaUserCircle />
-                <li className="text-lg font-medium">{users?.email}</li>
-              </div>
-            ))}
+            {/* {thisProjectData?.map((users) => ( */}
+            {project?.users &&
+  project?.users.map((user) => (
+    <div
+      key={user?._id}
+      className="flex gap-2 items-center p-2 bg-white rounded-lg shadow-md w-full hover:bg-gray-300"
+    >
+      <FaUserCircle />
+      <li className="text-lg font-medium">{user?.email}</li>
+    </div>
+  ))}
+
           </ul>
         </div>
       </div>
