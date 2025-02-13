@@ -38,7 +38,7 @@ export const receiveMessage = (eventName, cb) => {
   }
 };
 
-export const SendMessage = (eventName, data) => {
+export const sendMessage = (eventName, data) => {
   if (socketInstance) {
     socketInstance.emit(eventName, data);
   } else {

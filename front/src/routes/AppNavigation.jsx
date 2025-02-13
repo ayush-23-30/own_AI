@@ -12,11 +12,11 @@ function AppNavigation() {
     <div>
       <Routes>
         <Route path="/" element={
-          // <UserAuth>
-            <Homes/>
-          //  </UserAuth> 
+          
+            <Login/>
+          
       }/>
-        <Route path="/login" element= {<Login/>} />
+        <Route path="/home" element= {<Homes/>} />
         <Route path="/register" element={ <Register/> } />
         <Route path="/project/:id" element={ <Project/> } />
       </Routes>

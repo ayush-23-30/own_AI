@@ -95,7 +95,7 @@ function Homes() {
 
   useEffect(() => {
     axiosInstance
-      .get("/projects/all-projects")
+      .get("/projects/all")
       .then((res) => {
         setProjects(res.data.projects)
         // console.log("Projects", projects);
