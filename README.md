@@ -102,14 +102,14 @@ npm install
 
    ```bash
    cd backend
-   npm run dev
+   npx nodemon
    ```
 
    - Start the frontend (React):
 
    ```bash
    cd frontend
-   npm start
+   npm run dev
    ```
 
    The app should now be running on `http://localhost:3000` in your browser.
